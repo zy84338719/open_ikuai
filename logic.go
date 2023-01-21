@@ -8,7 +8,7 @@ import (
 )
 
 type Logic struct {
-	*client
+	client   *client
 	pubKey   string
 	clientId string
 	token    *model.TokenResponse
@@ -21,7 +21,7 @@ func NewLogic(pubKey, clientId string) *Logic {
 // InitRam 初始化到内存
 func (l *Logic) InitRam(ctx context.Context) error {
 	response := model.TokenResponse{}
-	err := l.OpenAccessToken(ctx, l.clientId, []byte(l.pubKey), &response)
+	err := l.client.OpenAccessToken(ctx, l.clientId, []byte(l.pubKey), &response)
 	if err != nil {
 		return err
 	}
@@ -33,7 +33,7 @@ func (l *Logic) InitRam(ctx context.Context) error {
 func (l *Logic) refreshToken() {
 	for range time.After(30 * time.Minute) {
 		response := model.TokenResponse{}
-		err := l.OpenRefreshToken(context.Background(), l.token.AccessToken, l.clientId, &response)
+		err := l.client.OpenRefreshToken(context.Background(), l.token.AccessToken, l.clientId, &response)
 		if err != nil {
 			return
 		}
@@ -44,7 +44,7 @@ func (l *Logic) refreshToken() {
 // AccessToken token 获取
 func (l *Logic) AccessToken(ctx context.Context) (*model.TokenResponse, error) {
 	response := model.TokenResponse{}
-	err := l.OpenAccessToken(ctx, l.clientId, []byte(l.pubKey), &response)
+	err := l.client.OpenAccessToken(ctx, l.clientId, []byte(l.pubKey), &response)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (l *Logic) AccessToken(ctx context.Context) (*model.TokenResponse, error) {
 // RefreshToken token 刷新
 func (l *Logic) RefreshToken(ctx context.Context, accessToken, clientId string) (*model.TokenResponse, error) {
 	response := model.TokenResponse{}
-	err := l.OpenRefreshToken(context.Background(), accessToken, clientId, &response)
+	err := l.client.OpenRefreshToken(context.Background(), accessToken, clientId, &response)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (l *Logic) RefreshToken(ctx context.Context, accessToken, clientId string) 
 // GetDeviceList 获取设备列表
 func (l *Logic) GetDeviceList(ctx context.Context) ([]model.Device, error) {
 	response := model.DeviceList{}
-	err := l.GetDevList(ctx, l.token.AccessToken, &response)
+	err := l.client.GetDevList(ctx, l.token.AccessToken, &response)
 	if response.ErrorCode%10000 != 0 {
 		return nil, fmt.Errorf("%+v", response.ErrorMsg)
 	}
@@ -76,7 +76,7 @@ func (l *Logic) GetDeviceList(ctx context.Context) ([]model.Device, error) {
 // GetRouterInfo 获取路由信息
 func (l *Logic) GetRouterInfo(ctx context.Context, gwid string) (*model.RouterBasic, error) {
 	response := model.Open9XXXResponse{}
-	err := l.GetRouterBaseInfo(ctx, l.token.AccessToken, gwid, &response)
+	err := l.client.GetRouterBaseInfo(ctx, l.token.AccessToken, gwid, &response)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func (l *Logic) GetRouterInfo(ctx context.Context, gwid string) (*model.RouterBa
 // SetRouterWebWhiteList 获取网络白名单
 func (l *Logic) SetRouterWebWhiteList(ctx context.Context, gwid string, webList model.WhiteList) error {
 	response := model.BaseResponse{}
-	err := l.SetRouterWhiteWebList(ctx, l.token.AccessToken, gwid, webList, &response)
+	err := l.client.SetRouterWhiteWebList(ctx, l.token.AccessToken, gwid, webList, &response)
 	if err != nil {
 		return err
 	}
@@ -102,7 +102,7 @@ func (l *Logic) SetRouterWebWhiteList(ctx context.Context, gwid string, webList 
 // AccountList 获取账号列表
 func (l *Logic) AccountList(ctx context.Context, gwid string) ([]model.AccountData, error) {
 	response := model.Open1XXXResponse{}
-	err := l.BillingRouterGetAccountList(ctx, l.token.AccessToken, gwid, &response)
+	err := l.client.BillingRouterGetAccountList(ctx, l.token.AccessToken, gwid, &response)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func (l *Logic) AccountList(ctx context.Context, gwid string) ([]model.AccountDa
 // OnlineUserKickByMac 强制用户下线ByMac
 func (l *Logic) OnlineUserKickByMac(ctx context.Context, gwid string, mac string) error {
 	response := model.BaseResponse{}
-	err := l.BillingRouterUserOffline(ctx, l.token.AccessToken, gwid, model.Open3XXXRequest{Param: model.Param{Mac: mac}}, &response)
+	err := l.client.BillingRouterUserOffline(ctx, l.token.AccessToken, gwid, model.Open3XXXRequest{Param: model.Param{Mac: mac}}, &response)
 	if err != nil {
 		return err
 	}
@@ -128,7 +128,7 @@ func (l *Logic) OnlineUserKickByMac(ctx context.Context, gwid string, mac string
 // OnlineUserKickByUserName 强制用户下线ByUserName
 func (l *Logic) OnlineUserKickByUserName(ctx context.Context, gwid string, username string) error {
 	response := model.BaseResponse{}
-	err := l.BillingRouterUserOffline(ctx, l.token.AccessToken, gwid, model.Open3XXXRequest{Param: model.Param{Username: username}}, &response)
+	err := l.client.BillingRouterUserOffline(ctx, l.token.AccessToken, gwid, model.Open3XXXRequest{Param: model.Param{Username: username}}, &response)
 	if err != nil {
 		return err
 	}
@@ -141,7 +141,7 @@ func (l *Logic) OnlineUserKickByUserName(ctx context.Context, gwid string, usern
 // OnlineUserList 用户在线列表
 func (l *Logic) OnlineUserList(ctx context.Context, gwid string, skip, limit int64) ([]model.OnlineUser, error) {
 	response := model.Open4XXXResponse{}
-	err := l.BillingRouterGetUserOnlineList(ctx, l.token.AccessToken, gwid, skip, limit, &response)
+	err := l.client.BillingRouterGetUserOnlineList(ctx, l.token.AccessToken, gwid, skip, limit, &response)
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +154,7 @@ func (l *Logic) OnlineUserList(ctx context.Context, gwid string, skip, limit int
 // AccountCreation 创建用户
 func (l *Logic) AccountCreation(ctx context.Context, gwid string, req model.AccountData) error {
 	response := model.BaseResponse{}
-	err := l.BillingRouterAddUser(ctx, l.token.AccessToken, gwid, req, &response)
+	err := l.client.BillingRouterAddUser(ctx, l.token.AccessToken, gwid, req, &response)
 	if err != nil {
 		return err
 	}
@@ -167,7 +167,7 @@ func (l *Logic) AccountCreation(ctx context.Context, gwid string, req model.Acco
 // AccountEdit 账户编辑
 func (l *Logic) AccountEdit(ctx context.Context, gwid string, req model.AccountData) error {
 	response := model.BaseResponse{}
-	err := l.BillingRouterUpdateUser(ctx, l.token.AccessToken, gwid, req, &response)
+	err := l.client.BillingRouterUpdateUser(ctx, l.token.AccessToken, gwid, req, &response)
 	if err != nil {
 		return err
 	}
@@ -180,7 +180,7 @@ func (l *Logic) AccountEdit(ctx context.Context, gwid string, req model.AccountD
 // AccountStatus 账户状态
 func (l *Logic) AccountStatus(ctx context.Context, gwid string, id int64, status model.AccountStatus) error {
 	response := model.BaseResponse{}
-	err := l.BillingRouterEnDisAbleUser(ctx, l.token.AccessToken, gwid, id, status, &response)
+	err := l.client.BillingRouterEnDisAbleUser(ctx, l.token.AccessToken, gwid, id, status, &response)
 	if err != nil {
 		return err
 	}
@@ -193,7 +193,7 @@ func (l *Logic) AccountStatus(ctx context.Context, gwid string, id int64, status
 // AccountDelete 账户删除
 func (l *Logic) AccountDelete(ctx context.Context, gwid string, id int64) error {
 	response := model.BaseResponse{}
-	err := l.BillingRouterDeleteUser(ctx, l.token.AccessToken, gwid, id, &response)
+	err := l.client.BillingRouterDeleteUser(ctx, l.token.AccessToken, gwid, id, &response)
 	if err != nil {
 		return err
 	}
@@ -206,7 +206,7 @@ func (l *Logic) AccountDelete(ctx context.Context, gwid string, id int64) error 
 // FindAccountByUsername 查看用户
 func (l *Logic) FindAccountByUsername(ctx context.Context, gwid string, username string) ([]model.AccountData, error) {
 	response := model.Open11XXXResponse{}
-	err := l.BillingRouterGetUser(ctx, l.token.AccessToken, gwid, username, &response)
+	err := l.client.BillingRouterGetUser(ctx, l.token.AccessToken, gwid, username, &response)
 	if err != nil {
 		return nil, err
 	}
@@ -220,7 +220,7 @@ func (l *Logic) FindAccountByUsername(ctx context.Context, gwid string, username
 func (l *Logic) CouponAdding(ctx context.Context, gwid string, req model.CouponParam) error {
 	response := model.Open18XXXResponse{}
 
-	err := l.BillingRouterAddUserCoupon(ctx, l.token.AccessToken, gwid, req, &response)
+	err := l.client.BillingRouterAddUserCoupon(ctx, l.token.AccessToken, gwid, req, &response)
 	if err != nil {
 		return err
 	}
@@ -234,7 +234,7 @@ func (l *Logic) CouponAdding(ctx context.Context, gwid string, req model.CouponP
 func (l *Logic) CouponDelete(ctx context.Context, gwid string, id int64) error {
 	response := model.BaseResponse{}
 
-	err := l.BillingRouterDeleteUserCoupon(ctx, l.token.AccessToken, gwid, id, &response)
+	err := l.client.BillingRouterDeleteUserCoupon(ctx, l.token.AccessToken, gwid, id, &response)
 	if err != nil {
 		return err
 	}
@@ -248,7 +248,7 @@ func (l *Logic) CouponDelete(ctx context.Context, gwid string, id int64) error {
 func (l *Logic) CouponEdit(ctx context.Context, gwid string, req model.CouponParam) error {
 	response := model.BaseResponse{}
 
-	err := l.BillingRouterUpdateUserCoupon(ctx, l.token.AccessToken, gwid, req, &response)
+	err := l.client.BillingRouterUpdateUserCoupon(ctx, l.token.AccessToken, gwid, req, &response)
 	if err != nil {
 		return err
 	}
@@ -262,7 +262,7 @@ func (l *Logic) CouponEdit(ctx context.Context, gwid string, req model.CouponPar
 func (l *Logic) CouponList(ctx context.Context, gwid string, skip, limit int64) ([]model.Coupon, error) {
 	response := model.Open21XXXResponse{}
 
-	err := l.BillingRouterGetUserCouponList(ctx, l.token.AccessToken, gwid, skip, limit, &response)
+	err := l.client.BillingRouterGetUserCouponList(ctx, l.token.AccessToken, gwid, skip, limit, &response)
 	if err != nil {
 		return nil, err
 	}
@@ -276,7 +276,7 @@ func (l *Logic) CouponList(ctx context.Context, gwid string, skip, limit int64) 
 func (l *Logic) PushCustomAuthInfo(ctx context.Context, gwid string, req model.Draft) ([]model.Draft, error) {
 	response := model.Open22XXXResponse{}
 
-	err := l.BillingRouterCustomAuthInfo(ctx, l.token.AccessToken, gwid, req, &response)
+	err := l.client.BillingRouterCustomAuthInfo(ctx, l.token.AccessToken, gwid, req, &response)
 	if err != nil {
 		return nil, err
 	}
@@ -290,7 +290,7 @@ func (l *Logic) PushCustomAuthInfo(ctx context.Context, gwid string, req model.D
 func (l *Logic) GetCustomAuthUserList(ctx context.Context, gwid string) ([]model.Draft, error) {
 	response := model.Open23XXXResponse{}
 
-	err := l.BillingRouterCustomAuthUserList(ctx, l.token.AccessToken, gwid, &response)
+	err := l.client.BillingRouterCustomAuthUserList(ctx, l.token.AccessToken, gwid, &response)
 	if err != nil {
 		return nil, err
 	}
@@ -303,7 +303,7 @@ func (l *Logic) GetCustomAuthUserList(ctx context.Context, gwid string) ([]model
 // CustomAuthUserDelete 删除自定义认证信息
 func (l *Logic) CustomAuthUserDelete(ctx context.Context, gwid string, username string) error {
 	response := model.BaseResponse{}
-	err := l.BillingRouterCustomAuthUserDelete(ctx, l.token.AccessToken, gwid, username, &response)
+	err := l.client.BillingRouterCustomAuthUserDelete(ctx, l.token.AccessToken, gwid, username, &response)
 	if err != nil {
 		return err
 	}
@@ -316,7 +316,7 @@ func (l *Logic) CustomAuthUserDelete(ctx context.Context, gwid string, username 
 // CustomAuthUserUpdate 更新自定义认证信息
 func (l *Logic) CustomAuthUserUpdate(ctx context.Context, gwid string, req model.Draft) error {
 	response := model.BaseResponse{}
-	err := l.BillingRouterCustomAuthUserUpdate(ctx, l.token.AccessToken, gwid, req, &response)
+	err := l.client.BillingRouterCustomAuthUserUpdate(ctx, l.token.AccessToken, gwid, req, &response)
 	if err != nil {
 		return err
 	}
