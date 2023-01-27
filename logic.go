@@ -145,7 +145,7 @@ func (l *Logic) OnlineUserList(ctx context.Context, gwid string, skip, limit int
 	if err != nil {
 		return nil, err
 	}
-	if response.ErrorCode != 3000 {
+	if response.ErrorCode%10000 != 0  {
 		return nil, fmt.Errorf("%+v", response.ErrorMsg)
 	}
 	return response.Data, nil
@@ -158,7 +158,7 @@ func (l *Logic) AccountCreation(ctx context.Context, gwid string, req model.Acco
 	if err != nil {
 		return err
 	}
-	if response.ErrorCode != 3000 {
+	if response.ErrorCode%10000 != 0  {
 		return fmt.Errorf("%+v", response.ErrorMsg)
 	}
 	return nil
@@ -171,7 +171,7 @@ func (l *Logic) AccountEdit(ctx context.Context, gwid string, req model.AccountD
 	if err != nil {
 		return err
 	}
-	if response.ErrorCode != 3000 {
+	if response.ErrorCode%10000 != 0  {
 		return fmt.Errorf("%+v", response.ErrorMsg)
 	}
 	return nil
@@ -224,7 +224,7 @@ func (l *Logic) CouponAdding(ctx context.Context, gwid string, req model.CouponP
 	if err != nil {
 		return err
 	}
-	if response.ErrorCode != 3000 {
+	if response.ErrorCode%10000 != 0  {
 		return fmt.Errorf("%+v", response.ErrorMsg)
 	}
 	return nil
@@ -252,7 +252,7 @@ func (l *Logic) CouponEdit(ctx context.Context, gwid string, req model.CouponPar
 	if err != nil {
 		return err
 	}
-	if response.ErrorCode != 3000 {
+	if response.ErrorCode%10000 != 0  {
 		return fmt.Errorf("%+v", response.ErrorMsg)
 	}
 	return nil
