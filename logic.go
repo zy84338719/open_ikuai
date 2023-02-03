@@ -31,7 +31,8 @@ func (l *Logic) InitRam(ctx context.Context) error {
 }
 
 func (l *Logic) refreshToken() {
-	for range time.After(30 * time.Minute) {
+	ticker := time.NewTicker(30 * time.Minute)
+	for range ticker.C {
 		response := model.TokenResponse{}
 		err := l.client.OpenRefreshToken(context.Background(), l.token.AccessToken, l.clientId, &response)
 		if err != nil {
@@ -39,6 +40,7 @@ func (l *Logic) refreshToken() {
 		}
 		l.token = &response
 	}
+	ticker.Stop()
 }
 
 // AccessToken token 获取
